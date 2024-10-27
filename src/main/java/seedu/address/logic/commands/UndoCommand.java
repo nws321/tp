@@ -3,7 +3,9 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -75,9 +77,16 @@ public class UndoCommand extends Command {
         case "delete":
             DeleteCommand dltCommand = (DeleteCommand) latestCommand;
             List<Person> personsToAddBack = dltCommand.getPersonsToDelete();
+            Map<Person, Integer> personToIndexMap = new HashMap<>();
 
             for (int i = 0; i < personsToAddBack.size(); i++) {
-                model.addPerson(personsToAddBack.get(i), dltCommand.getTargetIndexes()[i].getZeroBased());
+                personToIndexMap.put(personsToAddBack.get(i), dltCommand.getTargetIndexes()[i].getZeroBased());
+            }
+            List<Map.Entry<Person, Integer>> entryList = new ArrayList<>(personToIndexMap.entrySet());
+            entryList.sort(Map.Entry.comparingByValue());
+
+            for (Map.Entry<Person, Integer> entry : entryList) {
+                model.addPerson(entry.getKey(), entry.getValue());
             }
             String namesAddedBack = personsToAddBack.stream()
                     .map(person -> person.getName().toString())
